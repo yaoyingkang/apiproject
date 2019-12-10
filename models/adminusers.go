@@ -1,8 +1,8 @@
 package models
 
 import (
-	"beego/apiproject/common"
-	"beego/apiproject/jwtUtil"
+	"apiproject/common"
+	"apiproject/jwtUtil"
 	"fmt"
 	_ "github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -25,11 +25,13 @@ type AdminUsers struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time `xorm:"updated"`
 }
+
 var engine *xorm.Engine
+
 func init() {
 	orm.RegisterModel(new(AdminUsers))
 
-    engine=common.NewEngine()
+	engine = common.NewEngine()
 
 }
 
@@ -47,8 +49,8 @@ func GetAdminUsersById(id int64) (v *AdminUsers, err error) {
 
 	v = &AdminUsers{Id: id}
 	_, errs := engine.Get(v)
-	if errs==nil {
-		return v,nil
+	if errs == nil {
+		return v, nil
 	}
 	return nil, err
 }
@@ -157,33 +159,31 @@ func DeleteAdminUsers(id int64) (err error) {
 	return
 }
 
+func AdminLogin(username, password string) (token string, err error) {
 
-func AdminLogin(username, password string) (token string,err error) {
-
-
-	v:=new(AdminUsers)
-	_,errs := engine.Where("username=?",username).Get(v)
+	v := new(AdminUsers)
+	_, errs := engine.Where("username=?", username).Get(v)
 	if errs == nil {
-		if v.Password==password {
-			token=jwtUtil.GetHStoken("es",strconv.FormatInt(v.Id,10),v.Username)
-			v.RememberToken=token
+		if v.Password == password {
+			token = jwtUtil.GetHStoken("es", strconv.FormatInt(v.Id, 10), v.Username)
+			v.RememberToken = token
 			_, errs := engine.Id(v.Id).Update(v)
-			if errs==nil {
-				return token,nil
+			if errs == nil {
+				return token, nil
 			}
-			return  "",errors.WithMessage(errs,"更新token出错")
+			return "", errors.WithMessage(errs, "更新token出错")
 		}
-		return "",errors.New("账号不存在")
+		return "", errors.New("账号不存在")
 	}
-	return  "",errs
+	return "", errs
 }
 
-func AdminLoginOut(id int64) (bool , error) {
-	v:=new(AdminUsers)
-	v.RememberToken="  "
+func AdminLoginOut(id int64) (bool, error) {
+	v := new(AdminUsers)
+	v.RememberToken = "  "
 	_, errs := engine.Id(id).Update(v)
-	if errs==nil {
-		return true,nil
+	if errs == nil {
+		return true, nil
 	}
-	return false,errors.WithMessage(errs,"注销失败")
+	return false, errors.WithMessage(errs, "注销失败")
 }

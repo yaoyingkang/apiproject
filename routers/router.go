@@ -8,9 +8,9 @@
 package routers
 
 import (
-	"beego/apiproject/controllers"
-	"beego/apiproject/jwtUtil"
-	"beego/apiproject/models"
+	"apiproject/controllers"
+	"apiproject/jwtUtil"
+	"apiproject/models"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
@@ -24,45 +24,45 @@ func init() {
 		beego.NSNamespace("/admin",
 			beego.NSRouter("/login", &controllers.AdminController{}, "post:Login"),
 			beego.NSCond(func(ctx *context.Context) bool {
-				if ctx.Input.URL()=="/v1/admin/login" {
-					return  true
+				if ctx.Input.URL() == "/v1/admin/login" {
+					return true
 				}
-				token:=ctx.Input.Query("token")
+				token := ctx.Input.Query("token")
 				fmt.Println(token)
-				if token==""  {
+				if token == "" {
 					return false
 				}
-				arr:= jwtUtil.ParseHStoken(token)
+				arr := jwtUtil.ParseHStoken(token)
 				fmt.Println(arr)
-				if arr==nil {
-					return  false
+				if arr == nil {
+					return false
 				}
 				fmt.Println(arr)
-				id,err:= arr["uid"].(string)
-				fmt.Println(id,err)
+				id, err := arr["uid"].(string)
+				fmt.Println(id, err)
 				if !err {
 					return false
 				}
-				times,timeErr:= arr["expire_time"].(string)
-				fmt.Println(times,timeErr,reflect.TypeOf(times))
-				time64, errors := strconv.ParseInt(times, 10, 64);
-				if errors!=nil {
+				times, timeErr := arr["expire_time"].(string)
+				fmt.Println(times, timeErr, reflect.TypeOf(times))
+				time64, errors := strconv.ParseInt(times, 10, 64)
+				if errors != nil {
 					return false
 				}
 				if !timeErr {
 					return false
 				}
-				now:= time.Now().Unix()
-				if now-time64>0 {
+				now := time.Now().Unix()
+				if now-time64 > 0 {
 					return false
 				}
-				j, b := strconv.ParseInt(id,10,64)
-				fmt.Println(j,b)
-				if b==nil {
-					info,errs:= models.GetAdminUsersById(j);
-					if errs==nil {
-                       if info.RememberToken==token{
-							ctx.Input.SetData("user",info)
+				j, b := strconv.ParseInt(id, 10, 64)
+				fmt.Println(j, b)
+				if b == nil {
+					info, errs := models.GetAdminUsersById(j)
+					if errs == nil {
+						if info.RememberToken == token {
+							ctx.Input.SetData("user", info)
 							fmt.Println(info)
 							return true
 						}

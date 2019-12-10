@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"beego/apiproject/models"
+	"apiproject/models"
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
@@ -90,18 +90,19 @@ func (c *AdminController) Delete() {
 
 type Data struct {
 	Data    interface{} `json:"data"`
-	Code    int  `json:"code"`
-	Message string `json:"message"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
 }
 
 func (u *AdminController) Login() {
-	var ob struct{
+	var ob struct {
 		Username string
-	Password string}
+		Password string
+	}
 	var err error
 	if err = json.Unmarshal(u.Ctx.Input.RequestBody, &ob); err == nil {
 		fmt.Println(ob)
-		token, errs := models.AdminLogin(ob.Username, ob.Password);
+		token, errs := models.AdminLogin(ob.Username, ob.Password)
 		if errs == nil {
 			u.Data["json"] = Data{token, 1, "success"}
 		} else {
