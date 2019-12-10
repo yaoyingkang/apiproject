@@ -8,7 +8,6 @@ type ResponseData struct {
 	Data    interface{}
 	Code    int
 	Message string
-	tip     string
 }
 
 type ErrorController struct {
