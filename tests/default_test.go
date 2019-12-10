@@ -2,14 +2,13 @@ package test
 
 import (
 	_ "apiproject/routers"
+	"github.com/astaxie/beego"
+	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"runtime"
 	"testing"
-
-	"github.com/astaxie/beego"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func init() {
