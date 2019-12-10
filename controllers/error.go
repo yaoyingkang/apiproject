@@ -8,6 +8,7 @@ type ResponseData struct {
 	Data    interface{}
 	Code    int
 	Message string
+	tip     string
 }
 
 type ErrorController struct {
@@ -23,7 +24,6 @@ func (c *ErrorController) Error501() {
 	c.Data["content"] = "server error"
 	c.TplName = "501.tpl"
 }
-
 
 func (c *ErrorController) Error401() {
 	c.Data["json"] = ResponseData{401, 401, "error"}
