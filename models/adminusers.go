@@ -22,7 +22,7 @@ type AdminUsers struct {
 	Name          string
 	Avatar        string
 	RememberToken string
-	CreatedAt     time.Time
+	CreatedAt     time.Time `xorm:"created"`
 	UpdatedAt     time.Time `xorm:"updated"`
 }
 
@@ -38,8 +38,8 @@ func init() {
 // AddAdminUsers insert a new AdminUsers into database and returns
 // last inserted Id on success.
 func AddAdminUsers(m *AdminUsers) (id int64, err error) {
-	o := orm.NewOrm()
-	id, err = o.Insert(m)
+
+	id, err = engine.Insert(m)
 	return
 }
 
@@ -132,12 +132,11 @@ func GetAllAdminUsers(query map[string]string, fields []string, sortby []string,
 // UpdateAdminUsers updates AdminUsers by Id and returns error if
 // the record to be updated doesn't exist
 func UpdateAdminUsersById(m *AdminUsers) (err error) {
-	o := orm.NewOrm()
 	v := AdminUsers{Id: m.Id}
-	// ascertain id exists in the database
-	if err = o.Read(&v); err == nil {
-		var num int64
-		if num, err = o.Update(m); err == nil {
+	var num int64
+	_, err = engine.Id(27).Get(&v)
+	if err == nil {
+		if num, err = engine.ID(m.Id).Update(&m); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}
@@ -186,4 +185,17 @@ func AdminLoginOut(id int64) (bool, error) {
 		return true, nil
 	}
 	return false, errors.WithMessage(errs, "注销失败")
+}
+
+func AdminList(code string) (user_list []AdminUsers, err error) {
+	var v []AdminUsers
+	if len(code) > 0 {
+		err := engine.Where("id>?", 0).Find(&v)
+		if err == nil {
+			return v, nil
+		}
+		return nil, err
+	}
+	return nil, errors.New("code必须存在")
+
 }

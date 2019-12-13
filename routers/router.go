@@ -27,6 +27,7 @@ func init() {
 				if ctx.Input.URL() == "/v1/admin/login" {
 					return true
 				}
+				fmt.Println(666)
 				token := ctx.Input.Query("token")
 				fmt.Println(token)
 				if token == "" {
@@ -46,6 +47,7 @@ func init() {
 				times, timeErr := arr["expire_time"].(string)
 				fmt.Println(times, timeErr, reflect.TypeOf(times))
 				time64, errors := strconv.ParseInt(times, 10, 64)
+				fmt.Println(time64, errors, reflect.TypeOf(time64))
 				if errors != nil {
 					return false
 				}
@@ -53,6 +55,7 @@ func init() {
 					return false
 				}
 				now := time.Now().Unix()
+				fmt.Println(now, now-time64, reflect.TypeOf(time64))
 				if now-time64 > 0 {
 					return false
 				}
@@ -74,6 +77,10 @@ func init() {
 			}),
 			beego.NSRouter("/loginout", &controllers.AdminController{}, "get:LoginOut"),
 			beego.NSRouter("/user", &controllers.AdminController{}, "get:GetOne"),
+			beego.NSRouter("/list", &controllers.AdminController{}, "get:List"),
+			beego.NSRouter("/post", &controllers.AdminController{}, "post:Post"),
+			beego.NSRouter("/put", &controllers.AdminController{}, "put:Put"),
+			beego.NSRouter("/delete", &controllers.AdminController{}, "post:Delete"),
 			beego.NSInclude(
 				&controllers.AdminController{},
 			),

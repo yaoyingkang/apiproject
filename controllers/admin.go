@@ -28,8 +28,28 @@ func (c *AdminController) URLMapping() {
 // @Success 201 {object} models.Admin
 // @Failure 403 body is empty
 // @router / [post]
-func (c *AdminController) Post() {
+func (u *AdminController) Post() {
+	var ob struct {
+		Password string
+		Username string
+	}
+	var err error
+	if err = json.Unmarshal(u.Ctx.Input.RequestBody, &ob); err == nil {
+		fmt.Println(ob, ob.Username, ob.Password)
+		var user models.AdminUsers
+		user.Username = ob.Username
+		user.Password = ob.Password
+		token, errs := models.AddAdminUsers(&user)
+		if errs == nil {
+			u.Data["json"] = Data{token, 1, "success"}
+		} else {
+			u.Data["json"] = Data{"", 0, errs.Error()}
+		}
+	} else {
+		u.Data["json"] = Data{"", 0, err.Error()}
+	}
 
+	u.ServeJSON()
 }
 
 func (c *AdminController) GetOne() {
@@ -73,8 +93,30 @@ func (c *AdminController) GetAll() {
 // @Success 200 {object} models.Admin
 // @Failure 403 :id is not int
 // @router /:id [put]
-func (c *AdminController) Put() {
+func (u *AdminController) Put() {
+	var ob struct {
+		Password string
+		Username string
+		Id       int64
+	}
+	var err error
+	if err = json.Unmarshal(u.Ctx.Input.RequestBody, &ob); err == nil {
+		fmt.Println(ob, ob.Username, ob.Password)
+		var user models.AdminUsers
+		user.Username = ob.Username
+		user.Password = ob.Password
+		user.Id = ob.Id
+		errs := models.UpdateAdminUsersById(&user)
+		if errs == nil {
+			u.Data["json"] = Data{user, 1, "success"}
+		} else {
+			u.Data["json"] = Data{"", 0, errs.Error()}
+		}
+	} else {
+		u.Data["json"] = Data{"", 0, err.Error()}
+	}
 
+	u.ServeJSON()
 }
 
 // Delete ...
@@ -84,8 +126,25 @@ func (c *AdminController) Put() {
 // @Success 200 {string} delete success!
 // @Failure 403 id is empty
 // @router /:id [delete]
-func (c *AdminController) Delete() {
+func (u *AdminController) Delete() {
+	var ob struct {
+		Id int64
+	}
+	var err error
+	if err = json.Unmarshal(u.Ctx.Input.RequestBody, &ob); err == nil {
+		var user models.AdminUsers
+		user.Id = ob.Id
+		errs := models.DeleteAdminUsers(user.Id)
+		if errs == nil {
+			u.Data["json"] = Data{ob.Id, 1, "success"}
+		} else {
+			u.Data["json"] = Data{"", 0, errs.Error()}
+		}
+	} else {
+		u.Data["json"] = Data{"", 0, err.Error()}
+	}
 
+	u.ServeJSON()
 }
 
 type Data struct {
@@ -131,4 +190,16 @@ func (c *AdminController) LoginOut() {
 	c.Data["json"] = Data{"", 0, "error"}
 	c.ServeJSON()
 
+}
+
+func (u *AdminController) List() {
+
+	user_list, errs := models.AdminList("1")
+	if errs == nil {
+		u.Data["json"] = Data{user_list, 1, "success"}
+	} else {
+		u.Data["json"] = Data{"", 0, errs.Error()}
+	}
+
+	u.ServeJSON()
 }
