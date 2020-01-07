@@ -81,6 +81,7 @@ func init() {
 			beego.NSRouter("/post", &controllers.AdminController{}, "post:Post"),
 			beego.NSRouter("/put", &controllers.AdminController{}, "put:Put"),
 			beego.NSRouter("/delete", &controllers.AdminController{}, "post:Delete"),
+			beego.NSRouter("/users", &controllers.AdminController{}, "post:GetAll"),
 			beego.NSInclude(
 				&controllers.AdminController{},
 			),

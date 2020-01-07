@@ -14,11 +14,11 @@ type AdminController struct {
 
 // URLMapping ...
 func (c *AdminController) URLMapping() {
-	c.Mapping("Post", c.Post)
-	//c.Mapping("GetOne", c.GetOne)
-	c.Mapping("GetAll", c.GetAll)
-	c.Mapping("Put", c.Put)
-	c.Mapping("Delete", c.Delete)
+	//c.Mapping("Post", c.Post)
+	////c.Mapping("GetOne", c.GetOne)
+	//c.Mapping("GetAll", c.GetAll)
+	//c.Mapping("Put", c.Put)
+	//c.Mapping("Delete", c.Delete)
 }
 
 // Post ...
@@ -81,8 +81,30 @@ func (c *AdminController) GetOne() {
 // @Success 200 {object} models.Admin
 // @Failure 403
 // @router / [get]
-func (c *AdminController) GetAll() {
+func (u *AdminController) GetAll() {
+	var ob struct {
+		Fields []string `json:"fields"`
+		Order  []string `json:"order"`
+		Offset int      `json:"offset"`
+		Limit  int      `json:"limit"`
+	}
+	var err error
+	fmt.Println(ob, ob.Fields, ob.Order)
+	if err = json.Unmarshal(u.Ctx.Input.RequestBody, &ob); err == nil {
+		fmt.Println(ob, ob.Fields, ob.Order)
 
+		token, errs := models.AdminListPage(ob.Fields, ob.Order, ob.Offset, ob.Limit)
+		if errs == nil {
+			u.Data["json"] = Data{token, 1, "success"}
+		} else {
+			u.Data["json"] = Data{"", 0, errs.Error()}
+		}
+	} else {
+		fmt.Println(ob, ob.Fields, ob.Order)
+		u.Data["json"] = Data{"", 0, err.Error()}
+	}
+
+	u.ServeJSON()
 }
 
 // Put ...

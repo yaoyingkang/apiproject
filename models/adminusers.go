@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"xorm.io/xorm"
 )
 
 type AdminUsers struct {
@@ -26,12 +25,8 @@ type AdminUsers struct {
 	UpdatedAt     time.Time `xorm:"updated"`
 }
 
-var engine *xorm.Engine
-
 func init() {
 	orm.RegisterModel(new(AdminUsers))
-
-	engine = common.NewEngine()
 
 }
 
@@ -39,7 +34,7 @@ func init() {
 // last inserted Id on success.
 func AddAdminUsers(m *AdminUsers) (id int64, err error) {
 
-	id, err = engine.Insert(m)
+	id, err = common.Engine.Insert(m)
 	return
 }
 
@@ -48,7 +43,7 @@ func AddAdminUsers(m *AdminUsers) (id int64, err error) {
 func GetAdminUsersById(id int64) (v *AdminUsers, err error) {
 
 	v = &AdminUsers{Id: id}
-	_, errs := engine.Get(v)
+	_, errs := common.Engine.Get(v)
 	if errs == nil {
 		return v, nil
 	}
@@ -134,9 +129,9 @@ func GetAllAdminUsers(query map[string]string, fields []string, sortby []string,
 func UpdateAdminUsersById(m *AdminUsers) (err error) {
 	v := AdminUsers{Id: m.Id}
 	var num int64
-	_, err = engine.Id(27).Get(&v)
+	_, err = common.Engine.Id(v.Id).Get(&v)
 	if err == nil {
-		if num, err = engine.ID(m.Id).Update(&m); err == nil {
+		if num, err = common.Engine.ID(m.Id).Update(&m); err == nil {
 			fmt.Println("Number of records updated in database:", num)
 		}
 	}
@@ -146,27 +141,28 @@ func UpdateAdminUsersById(m *AdminUsers) (err error) {
 // DeleteAdminUsers deletes AdminUsers by Id and returns error if
 // the record to be deleted doesn't exist
 func DeleteAdminUsers(id int64) (err error) {
-	o := orm.NewOrm()
+
 	v := AdminUsers{Id: id}
 	// ascertain id exists in the database
-	if err = o.Read(&v); err == nil {
-		var num int64
-		if num, err = o.Delete(&AdminUsers{Id: id}); err == nil {
-			fmt.Println("Number of records deleted in database:", num)
+	_, err = common.Engine.Id(v.Id).Get(&v)
+	if err == nil {
+		if _, err = common.Engine.ID(v.Id).Delete(&v); err == nil {
+			fmt.Println("Number of records updated in database:", v)
 		}
 	}
+
 	return
 }
 
 func AdminLogin(username, password string) (token string, err error) {
 
 	v := new(AdminUsers)
-	_, errs := engine.Where("username=?", username).Get(v)
+	_, errs := common.Engine.Where("username=?", username).Get(v)
 	if errs == nil {
 		if v.Password == password {
 			token = jwtUtil.GetHStoken("es", strconv.FormatInt(v.Id, 10), v.Username)
 			v.RememberToken = token
-			_, errs := engine.Id(v.Id).Update(v)
+			_, errs := common.Engine.Id(v.Id).Update(v)
 			if errs == nil {
 				return token, nil
 			}
@@ -180,17 +176,17 @@ func AdminLogin(username, password string) (token string, err error) {
 func AdminLoginOut(id int64) (bool, error) {
 	v := new(AdminUsers)
 	v.RememberToken = "  "
-	_, errs := engine.Id(id).Update(v)
+	_, errs := common.Engine.Id(id).Update(v)
 	if errs == nil {
 		return true, nil
 	}
 	return false, errors.WithMessage(errs, "注销失败")
 }
 
-func AdminList(code string) (user_list []AdminUsers, err error) {
+func AdminList(code string) (userList []AdminUsers, err error) {
 	var v []AdminUsers
 	if len(code) > 0 {
-		err := engine.Where("id>?", 0).Find(&v)
+		err := common.Engine.Where("id>?", 0).Find(&v)
 		if err == nil {
 			return v, nil
 		}
@@ -198,4 +194,16 @@ func AdminList(code string) (user_list []AdminUsers, err error) {
 	}
 	return nil, errors.New("code必须存在")
 
+}
+
+func AdminListPage(fields []string, order []string,
+	offset int, limit int) (ml []AdminUsers, err error) {
+	var log []AdminUsers
+	selectField := strings.Join(fields, ",")
+	orderField := strings.Join(order, ",")
+	err = common.Engine.Select(selectField).Limit(limit, offset).OrderBy(orderField).Find(&log)
+	if err == nil {
+		return log, nil
+	}
+	return nil, err
 }
